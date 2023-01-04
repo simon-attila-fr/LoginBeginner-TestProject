@@ -10,6 +10,8 @@ const port = parseInt(process.env.APP_PORT ?? "5000", 10);
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+const { validateRegister } = require("./validators/registerValidator");
+
 app.use(express.json());
 
 console.log(process.env.DB_HOST);
@@ -45,7 +47,7 @@ app.get("/users", (req, res) => {
         }))
 })
 
-app.post("/register", async (req, res) => {
+app.post("/register", validateRegister, async (req, res) => {
     const { username, password } = req.body;
 
     const hashPassword = (plainPassword, options) => {
@@ -59,8 +61,8 @@ app.post("/register", async (req, res) => {
             [username, hashedPassword],
         )
         .then((result) => {
-            const id = result.insertId;
-            res.status(200).send(`User has been successfully created with insertId ${id}.`);
+            const rows = result[0].affectedRows;
+            res.status(200).send(`User has been successfully created, affected rows: ${rows}.`);
         })
         .catch(((err) => {
             // console.error(err);
