@@ -70,6 +70,28 @@ app.post("/register", validateRegister, async (req, res) => {
         }))
 });
 
+app.post("/login", (req, res) => {
+    const { username, password } = req.body;
+
+    db
+        .query(
+            "SELECT * FROM users WHERE username = ?;",
+            username,
+        )
+        .then(async (result) => {
+            const comparaisonResult = result[0].length > 0 ? await bcrypt.compare(password, result[0][0].password) : false;
+            console.log(comparaisonResult);
+            if (comparaisonResult) {
+                res.send({ message: `Welcome ${result[0][0].username}!` })
+            } else {
+                res.send("Wrong credentials.")
+            }
+        })
+        .catch((err) => {
+            res.status(500).send("Something went wrong.")
+        })
+});
+
 app.listen(port, (err) => {
     if (err) {
         console.error("Something bad happened.");
