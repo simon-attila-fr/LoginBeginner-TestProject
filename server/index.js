@@ -7,14 +7,24 @@ const cors = require("cors");
 const app = express();
 const port = parseInt(process.env.APP_PORT ?? "5000", 10);
 
+const jwt = require("jsonwebtoken");
+
+// Password hashing
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+// Validators and verificators
 const { validateRegister } = require("./validators/registerValidator");
+const { verifyJWT } = require("./auth/auth");
+const cookieParser = require('cookie-parser');
 
 app.use(express.json());
-
-console.log(process.env.DB_HOST);
+app.use(cors({
+    origin: ["http://localhost:3000"],
+    methods: ["GET", "POST"],
+    credentials: true,
+}));
+app.use(cookieParser());
 
 const db = mysql.createPool({
     host: process.env.DB_HOST,
@@ -34,18 +44,6 @@ db
     })
 
 // TODO error handling: check if username already exists
-// TODO input check Joi
-
-app.get("/users", (req, res) => {
-    db
-        .query("SELECT id, username FROM users")
-        .then(([users]) => {
-            res.json(users);
-        })
-        .catch(((err) => {
-            res.status(500).send("Error while retrieving data from database.");
-        }))
-})
 
 app.post("/register", validateRegister, async (req, res) => {
     const { username, password } = req.body;
@@ -65,7 +63,7 @@ app.post("/register", validateRegister, async (req, res) => {
             res.status(200).send(`User has been successfully created, affected rows: ${rows}.`);
         })
         .catch(((err) => {
-            // console.error(err);
+            console.error(err);
             res.status(500).send("Error while creating user.");
         }))
 });
@@ -80,17 +78,41 @@ app.post("/login", (req, res) => {
         )
         .then(async (result) => {
             const comparaisonResult = result[0].length > 0 ? await bcrypt.compare(password, result[0][0].password) : false;
-            console.log(comparaisonResult);
             if (comparaisonResult) {
-                res.send({ message: `Welcome ${result[0][0].username}!` })
+
+                const payload = { sub: result[0][0].id };
+                const token = jwt.sign(payload, process.env.JWT_SECRET, {
+                    expiresIn: "1h",
+                });
+                res
+                    .cookie("access_token", token, {
+                        httpOnly: true,
+                    })
+                    .send({
+                        user: result[0][0].username,
+                        message: `Welcome ${result[0][0].username}!`
+                    })
             } else {
-                res.send("Wrong credentials.")
+                res.status(401).send("Wrong credentials.")
             }
         })
         .catch((err) => {
             res.status(500).send("Something went wrong.")
         })
 });
+
+// ---- Protected routes ----
+app.use(verifyJWT);
+app.get("/api/users", (req, res) => {
+    db
+        .query("SELECT id, username FROM users")
+        .then(([users]) => {
+            res.json(users);
+        })
+        .catch(((err) => {
+            res.status(500).send("Error while retrieving data from database.");
+        }))
+})
 
 app.listen(port, (err) => {
     if (err) {
