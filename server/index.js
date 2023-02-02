@@ -103,8 +103,13 @@ app.post("/login", (req, res) => {
         })
 });
 
-// ---- Protected routes ----
+app.get("/logout", (req, res) => {
+    return res.clearCookie("access_token").sendStatus(204);
+})
+
+// ---- Protected routes ADMIN ----
 app.use(verifyAdminJWT);
+
 app.get("/api/users", (req, res) => {
     db
         .query("SELECT id, username FROM users")
