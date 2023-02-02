@@ -39,7 +39,7 @@ const verifyAdminJWT = (req, res, next) => {
                 return res.send("Access denied. Area restricted for admins.")
             }
             console.log(data);
-            req.userId = data.id;
+            req.adminId = data.id;
             return next()
         } catch {
             return res.sendStatus(401);
