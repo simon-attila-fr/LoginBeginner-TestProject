@@ -1,0 +1,21 @@
+.App {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.Registration, .Login {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2rem;
+}
+
+.Registration button, .Login button {
+  width: 125px;
+  margin: auto;
+}
+
+.Registration input, .Login input {
+  margin-bottom: 1rem;
+}
