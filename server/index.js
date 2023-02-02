@@ -15,7 +15,7 @@ const saltRounds = 10;
 
 // Validators and verificators
 const { validateRegister } = require("./validators/registerValidator");
-const { verifyJWT } = require("./auth/auth");
+const { verifyAdminJWT } = require("./auth/auth");
 const cookieParser = require('cookie-parser');
 
 app.use(express.json());
@@ -55,8 +55,8 @@ app.post("/register", validateRegister, async (req, res) => {
     const hashedPassword = await hashPassword(password, saltRounds);
     db
         .query(
-            "INSERT INTO users (username, password) VALUES (?,?)",
-            [username, hashedPassword],
+            "INSERT INTO users (username, password, isadmin) VALUES (?,?,?)",
+            [username, hashedPassword, '0'],
         )
         .then((result) => {
             const rows = result[0].affectedRows;
@@ -80,7 +80,9 @@ app.post("/login", (req, res) => {
             const comparaisonResult = result[0].length > 0 ? await bcrypt.compare(password, result[0][0].password) : false;
             if (comparaisonResult) {
 
-                const payload = { sub: result[0][0].id };
+                const payload = { id: result[0][0].id,
+                    isadmin: result[0][0].isadmin,              
+                };
                 const token = jwt.sign(payload, process.env.JWT_SECRET, {
                     expiresIn: "1h",
                 });
@@ -102,7 +104,7 @@ app.post("/login", (req, res) => {
 });
 
 // ---- Protected routes ----
-app.use(verifyJWT);
+app.use(verifyAdminJWT);
 app.get("/api/users", (req, res) => {
     db
         .query("SELECT id, username FROM users")
