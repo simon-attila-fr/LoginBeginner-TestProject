@@ -1,5 +1,7 @@
 const Joi = require('joi');
 const registerSchema = Joi.object({
+    email: Joi.string()
+        .email({ minDomainSegments: 2 }),
     username: Joi.string()
         .alphanum()
         .min(3)
