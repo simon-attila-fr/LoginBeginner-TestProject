@@ -34,14 +34,13 @@ const SignIn = () => {
         }
       );
       setAuth({
-        ...auth,
         username: response.data.user,
         loggedIn: true,
+        status: response.data.status,
         message: response.data.message,
         })
         console.log(auth);
         console.log(JSON.stringify(response));
-        console.log(response.data.accessToken);
       setEmail("");
       setPassword("");
       setSuccess(true);
@@ -58,6 +57,8 @@ const SignIn = () => {
         errorRef.current.focus();
     }
   };
+
+  console.log("auth2: ", auth);
 
   return (
     <>
