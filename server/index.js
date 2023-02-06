@@ -59,8 +59,8 @@ app.post("/register", validateRegister, (req, res) => {
       } else {
         const hashedPassword = await hashPassword(password, saltRounds);
         db.query(
-          "INSERT INTO users (email, username, password, isadmin) VALUES (?,?,?,?)",
-          [email, username, hashedPassword, "0"]
+          "INSERT INTO users (email, username, password, status) VALUES (?,?,?,?)",
+          [email, username, hashedPassword, "user"]
         )
           .then((result) => {
             const rows = result[0].affectedRows;
@@ -78,6 +78,10 @@ app.post("/register", validateRegister, (req, res) => {
 });
 
 app.post("/login", (req, res) => {
+  console.log(req.body);
+  if (!req.body.email || !req.body.password) {
+    return res.status(400).json({ "message":"Missing email or username." });
+  }
   const { email, password } = req.body;
 
   db.query("SELECT * FROM users WHERE email = ?;", email)
@@ -87,7 +91,7 @@ app.post("/login", (req, res) => {
           ? await bcrypt.compare(password, result[0][0].password)
           : false;
       if (comparaisonResult) {
-        const payload = { id: result[0][0].id, isadmin: result[0][0].isadmin };
+        const payload = { id: result[0][0].id, status: result[0][0].status };
         const token = jwt.sign(payload, process.env.JWT_SECRET, {
           expiresIn: "1h",
         });
@@ -96,7 +100,9 @@ app.post("/login", (req, res) => {
             httpOnly: true,
           })
           .send({
-            user: result[0][0].username,
+            email: result[0][0].email,
+            username: result[0][0].username,
+            status: result[0][0].status,
             message: `Welcome ${result[0][0].username}!`,
           });
       } else {
@@ -104,6 +110,7 @@ app.post("/login", (req, res) => {
       }
     })
     .catch((err) => {
+      console.log(err);
       res.status(500).send("Something went wrong.");
     });
 });
