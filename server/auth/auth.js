@@ -32,13 +32,12 @@ const verifyAdminJWT = (req, res, next) => {
         
         try {
             const data = jwt.verify(token, process.env.JWT_SECRET);
-            if (!data.isadmin){
-                return res.send("Internal error: admin status doesn't exist in the batabase.")
+            if (!data.status){
+                return res.send("Internal error: status doesn't exist in the batabase.")
             }
-            if (data.isadmin !== "1") {
+            if (data.status !== "admin") {
                 return res.send("Access denied. Area restricted for admins.")
             }
-            console.log(data);
             req.adminId = data.id;
             return next()
         } catch {
