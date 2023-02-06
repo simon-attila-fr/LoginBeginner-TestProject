@@ -37,31 +37,23 @@ const Register = () => {
 
   useEffect(() => {
     const result = EMAIL_regex.test(email);
-    console.log(result);
-    console.log(email);
     setValidEmail(result);
   }, [email]);
 
   useEffect(() => {
     const result = usernameRegex.test(username);
-    console.log(result);
-    console.log(username);
     setValidUsername(result);
   }, [username]);
 
   useEffect(() => {
     const result = PWD_regex.test(password);
-    console.log(result);
-    console.log(password);
     setValidPassword(result);
     const match =
       password === passwordVerif &&
       password.length >= 8 &&
       passwordVerif.length >= 8;
     setValidPasswordVerif(match);
-    console.log(validPasswordVerif);
   }, [password, passwordVerif, validPasswordVerif]);
-  console.log(validPasswordVerif);
 
   useEffect(() => {
     setErrorMsg("");
@@ -78,10 +70,11 @@ const Register = () => {
           withCredentials: true,
         }
       );
-      console.log(response.data);
+      setEmail("");
+      setUsername("");
+      setPassword("");
+      setPasswordVerif("");
       setSuccess(true);
-
-      // Clear input fields
     } catch (error) {
       if (!error?.response) {
         setErrorMsg("No server response.");
@@ -117,6 +110,7 @@ const Register = () => {
               ref={emailRef}
               autoComplete="off"
               onChange={(e) => setEmail(e.target.value)}
+              value={email}
               required
               aria-invalid={validEmail ? "false" : "true"}
               onFocus={() => setEmailFocus(true)}
@@ -131,6 +125,7 @@ const Register = () => {
               onChange={(e) => {
                 setUsername(e.target.value);
               }}
+              value={username}
               required
               aria-invalid={validUsername ? "false" : "true"}
               onFocus={() => setUsernameFocus(true)}
@@ -142,6 +137,7 @@ const Register = () => {
               id="password"
               autoComplete="off"
               onChange={(e) => setPassword(e.target.value)}
+              value={password}
               required
               aria-invalid={validPassword ? "false" : "true"}
               onFocus={() => setPasswordFocus(true)}
@@ -158,6 +154,7 @@ const Register = () => {
               onFocus={() => {
                 setPasswordVerifFocus(true);
               }}
+              value={passwordVerif}
               onBlur={() => setPasswordVerifFocus(false)}
             />
             <button
