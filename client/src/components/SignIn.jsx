@@ -45,7 +45,18 @@ const SignIn = () => {
       setEmail("");
       setPassword("");
       setSuccess(true);
-    } catch (error) {}
+    } catch (error) {
+        if (!error.response) {
+            setErrorMsg("No server response.")
+        } else if (error.response?.status === 400) {
+            setErrorMsg("Missing email or password.")
+        } else if (error.response?.status === 401) {
+            setErrorMsg("Wrong credentials.")
+        } else {
+            setErrorMsg("Login failed.")
+        }
+        errorRef.current.focus();
+    }
   };
 
   return (
