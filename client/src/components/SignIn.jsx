@@ -1,17 +1,22 @@
-import { useRef, useState, useEffect, useContext } from "react";
-import AuthContext from "../context/AuthProvider";
+import { useRef, useState, useEffect } from "react";
+import useAuth from "./hooks/useAuth";
 import axios from "../api/axios";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const SIGNIN_URL = "/login";
 
 const SignIn = () => {
-  const { auth, setAuth } = useContext(AuthContext);
+  const { auth, setAuth } = useAuth();
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+
   const emailRef = useRef();
   const errorRef = useRef();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -34,16 +39,15 @@ const SignIn = () => {
         }
       );
       setAuth({
-        username: response.data.user,
+        username: response.data.username,
         loggedIn: true,
-        status: response.data.status,
+        status: [response.data.status],
         message: response.data.message,
         })
-        console.log(auth);
-        console.log(JSON.stringify(response));
       setEmail("");
       setPassword("");
-      setSuccess(true);
+      console.log(from);
+      navigate(from, { replace: true });
     } catch (error) {
         if (!error.response) {
             setErrorMsg("No server response.")
@@ -58,15 +62,7 @@ const SignIn = () => {
     }
   };
 
-  console.log("auth2: ", auth);
-
   return (
-    <>
-      {success ? (
-        <section>
-          <h1>{auth.message}</h1>
-        </section>
-      ) : (
         <section>
           <p ref={errorRef} aria-live="assertive">
             {errorMsg}
@@ -103,8 +99,6 @@ const SignIn = () => {
             </p>
           </form>
         </section>
-      )}
-    </>
   );
 };
 
